@@ -5,41 +5,55 @@
 //  Created by No Name Society  on 3/10/25.
 //
 
+
 import SwiftUI
 
 struct HomeView: View {
     
+    @State var selectedTab: Tab = Tab.today
+    
     var body: some View {
         
-        TabView {
+        TabView (selection: $selectedTab) {
             
-            TodayView()
+            
+            TodayView(selectedTab: $selectedTab)
                 .tabItem {
                     Text("Today")
                     Image(systemName: "calendar")
                 }
-            
+                .tag(Tab.today)
             
             ThingsView()
                 .tabItem {
                     Text("Things")
                     Image(systemName: "heart")
                 }
+                .tag(Tab.things)
             
             RemindersView()
                 .tabItem {
                     Text("Reminders")
                     Image(systemName: "bell")
                 }
+                .tag(Tab.reminders)
             
             SettingsView()
                 .tabItem {
                     Text("Settings")
-                    Image(systemName: "gearshape")
+                    Image(systemName: "gear")
                 }
+                .tag(Tab.settings)
         }
         .padding()
     }
+}
+
+enum Tab: Int {
+    case today = 0
+    case things = 1
+    case reminders = 2
+    case settings = 3
 }
 
 #Preview {

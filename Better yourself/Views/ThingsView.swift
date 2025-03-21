@@ -1,9 +1,3 @@
-//
-//  ThingView.swift
-//  Better yourself
-//
-//  Created by No Name Society  on 3/10/25.
-//
 
 import SwiftUI
 import SwiftData
@@ -12,7 +6,8 @@ struct ThingsView: View {
     
     @Environment(\.modelContext) private var context
     
-    @Query(filter: Day.currentDayPredicate(), sort: \.date) private var today: [Day]
+    @Query(filter: Day.currentDayPredicate(),
+           sort: \.date) private var today: [Day]
     
     @Query(filter: #Predicate<Thing> { $0.isHidden == false } ) private var things: [Thing]
     
@@ -20,58 +15,76 @@ struct ThingsView: View {
     
     var body: some View {
         
-        VStack (alignment: .leading, spacing: 20) {
+        VStack (spacing: 20) {
             
             Text("Things")
                 .font(.largeTitle)
                 .bold()
+                .frame(maxWidth: .infinity, alignment: .leading)
             
-            Text("These are things that make you feel happy")
+            Text("These are the things that make you feel positive and uplifted.")
+                .frame(maxWidth: .infinity, alignment: .leading)
             
-            List (things) { thing in
+            if things.count == 0 {
+                // Image
+                Image("Things")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(maxWidth: 300)
+             
+                // Tooltip
+                ToolTipView(text: "Start by adding things that brighten your day. Tap the button below to get started!")
+            }
+            else {
                 
-                let today = getToday()
-                
-                HStack{
-                    Text(thing.title)
-                    Spacer()
+                List (things) { thing in
                     
-                    Button {
+                    let today = getToday()
+                    
+                    HStack {
+                        Text(thing.title)
+                        Spacer()
                         
-                        if today.things.contains(thing) {
-                            // Remove the thing from today
-                            today.things.removeAll { t in
-                                t == thing
+                        Button {
+                            
+                            if today.things.contains(thing) {
+                                // Remove the thing from today
+                                today.things.removeAll { t in
+                                    t == thing
+                                }
+                                try? context.save()
                             }
-                            try? context.save()
-                        }
-                        else {
-                            // Add the thing to today
-                            today.things.append(thing)
+                            else {
+                                // Add the thing to today
+                                today.things.append(thing)
+                            }
+                            
+                            
+                        } label: {
+                            
+                            // If this thing is already in Today's things list, show a solid checkmark instead
+                            if today.things.contains(thing) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.blue)
+                            }
+                            else {
+                                Image(systemName: "checkmark.circle")
+                            }
                         }
                         
                         
-                    } label: {
-                        
-                        //If this thing is already in Today's things list show a solic checkmarck instead
-                        if today.things.contains(thing) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(.blue)
-                        }
-                        else {
-                            Image(systemName: "checkmark.circle")
-                        }
                     }
                     
+                    
                 }
+                .listStyle(.plain)
                 
             }
-            .listStyle(.plain)
-            
+                
             Spacer()
             
-            Button("Add New Action") {
-                // TODO: Show sheet to add thing
+            Button("Add New Thing") {
+                // Show sheet to add thing
                 showAddView.toggle()
             }
             .buttonStyle(.borderedProminent)
@@ -83,26 +96,28 @@ struct ThingsView: View {
             AddThingView()
                 .presentationDetents([.fraction(0.2)])
         }
-        .padding()
         
     }
     
-    func getToday() -> Day  {
-        //Retrieve today from data base
+    func getToday() -> Day {
+        
+        // Try to retrieve today from the database
         if today.count > 0 {
             return today.first!
         }
         else {
-            // If it doesnt exist, create and insert it
+            // If it doesn't exist, create a day and insert it
             let today = Day()
             context.insert(today)
             try? context.save()
             
             return today
         }
+        
     }
 }
 
 #Preview {
     ThingsView()
 }
+
